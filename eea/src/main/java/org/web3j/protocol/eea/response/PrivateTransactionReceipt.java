@@ -22,12 +22,7 @@ import org.web3j.protocol.core.methods.response.Log;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 
 public class PrivateTransactionReceipt extends TransactionReceipt {
-
-    private final String contractAddress;
-    private final String from;
-    private final String to;
     private final String output;
-    private final List<Log> logs;
 
     @JsonCreator
     public PrivateTransactionReceipt(
@@ -36,27 +31,11 @@ public class PrivateTransactionReceipt extends TransactionReceipt {
             @JsonProperty(value = "to") final String to,
             @JsonProperty(value = "output") final String output,
             @JsonProperty(value = "logs") final List<Log> logs) {
-        this.contractAddress = contractAddress;
-        this.from = from;
-        this.to = to;
+        this.setContractAddress(contractAddress);
+        this.setFrom(from);
+        this.setTo(to);
         this.output = output;
-        this.logs = logs;
-    }
-
-    public String getContractAddress() {
-        return contractAddress;
-    }
-
-    public String getFrom() {
-        return from;
-    }
-
-    public String getTo() {
-        return to;
-    }
-
-    public List<Log> getLogs() {
-        return logs;
+        this.setLogs(logs);
     }
 
     public String getOutput() {
@@ -72,35 +51,35 @@ public class PrivateTransactionReceipt extends TransactionReceipt {
             return false;
         }
         final PrivateTransactionReceipt that = (PrivateTransactionReceipt) o;
-        return Objects.equals(contractAddress, that.contractAddress)
-                && from.equals(that.from)
-                && Objects.equals(to, that.to)
+        return Objects.equals(getContractAddress(), that.getContractAddress())
+                && getFrom().equals(that.getFrom())
+                && Objects.equals(getTo(), that.getTo())
                 && Objects.equals(output, that.output)
-                && Objects.equals(logs, that.logs);
+                && Objects.equals(getLogs(), that.getLogs());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(contractAddress, from, to, output, logs);
+        return Objects.hash(getContractAddress(), getFrom(), getTo(), output, getLogs());
     }
 
     @Override
     public String toString() {
         return "PrivateTransactionReceipt{"
                 + "contractAddress='"
-                + contractAddress
+                + getContractAddress()
                 + '\''
                 + ", from='"
-                + from
+                + getFrom()
                 + '\''
                 + ", to='"
-                + to
+                + getTo()
                 + '\''
                 + ", output='"
                 + output
                 + '\''
                 + ", logs="
-                + logs
+                + getLogs()
                 + '}';
     }
 }

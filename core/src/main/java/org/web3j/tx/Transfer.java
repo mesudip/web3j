@@ -89,7 +89,7 @@ public class Transfer extends ManagedTransaction {
 
         TransactionManager transactionManager = new RawTransactionManager(web3j, credentials);
 
-        return new RemoteCall<>(
+        return RemoteCall.fromCallable(
                 () -> new Transfer(web3j, transactionManager).send(toAddress, value, unit));
     }
 
@@ -104,7 +104,7 @@ public class Transfer extends ManagedTransaction {
      */
     public RemoteCall<TransactionReceipt> sendFunds(
             String toAddress, BigDecimal value, Convert.Unit unit) {
-        return new RemoteCall<>(() -> send(toAddress, value, unit));
+        return RemoteCall.fromCallable(() -> send(toAddress, value, unit));
     }
 
     public RemoteCall<TransactionReceipt> sendFunds(
@@ -113,6 +113,6 @@ public class Transfer extends ManagedTransaction {
             Convert.Unit unit,
             BigInteger gasPrice,
             BigInteger gasLimit) {
-        return new RemoteCall<>(() -> send(toAddress, value, unit, gasPrice, gasLimit));
+       return RemoteCall.fromCallable(() -> send(toAddress, value, unit, gasPrice, gasLimit));
     }
 }

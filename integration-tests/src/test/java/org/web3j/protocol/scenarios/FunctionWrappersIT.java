@@ -57,7 +57,7 @@ public class FunctionWrappersIT extends Scenario {
                         STATIC_GAS_PROVIDER);
 
         TransactionReceipt transactionReceipt =
-                fibonacci.fibonacciNotify(BigInteger.valueOf(15)).send();
+                fibonacci.fibonacciNotify(BigInteger.valueOf(15)).send().send();
 
         Fibonacci.NotifyEventResponse result = fibonacci.getNotifyEvents(transactionReceipt).get(0);
 

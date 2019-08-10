@@ -12,15 +12,18 @@
  */
 package org.web3j.tx.response;
 
-import java.io.IOException;
-import java.util.Optional;
-
+import org.web3j.crypto.Pair;
+import org.web3j.protocol.core.Response;
+import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.protocol.eea.Eea;
 import org.web3j.protocol.eea.response.EeaGetTransactionReceipt;
 import org.web3j.protocol.eea.response.PrivateTransactionReceipt;
 import org.web3j.protocol.exceptions.TransactionException;
 
-public abstract class PrivateTransactionReceiptProcessor extends TransactionReceiptProcessor {
+import java.io.IOException;
+import java.util.Optional;
+
+public  abstract class PrivateTransactionReceiptProcessor extends TransactionReceiptProcessor {
     private Eea eea;
 
     public PrivateTransactionReceiptProcessor(Eea eea) {
@@ -28,6 +31,12 @@ public abstract class PrivateTransactionReceiptProcessor extends TransactionRece
         this.eea = eea;
     }
 
+
+    @Override
+    Pair<? extends Optional<? extends TransactionReceipt>,Optional<Response.Error>> sendTransactionReceiptAcceptError(String transactionHash) throws IOException {
+        EeaGetTransactionReceipt transactionReceipt=eea.eeaGetTransactionReceipt(transactionHash).send();
+        return processTransactionReceipt(transactionReceipt);
+    }
     @Override
     Optional<PrivateTransactionReceipt> sendTransactionReceiptRequest(String transactionHash)
             throws IOException, TransactionException {

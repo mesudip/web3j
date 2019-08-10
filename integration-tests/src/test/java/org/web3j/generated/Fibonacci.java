@@ -22,6 +22,7 @@ import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.tx.Contract;
 import org.web3j.tx.TransactionManager;
 import org.web3j.tx.gas.ContractGasProvider;
+import org.web3j.tx.interactions.InteractiveGetTransactionHash;
 
 /**
  * <p>Auto generated code.
@@ -61,7 +62,7 @@ public class Fibonacci extends Contract {
         super(BINARY, contractAddress, web3j, transactionManager, contractGasProvider);
     }
 
-    public RemoteCall<TransactionReceipt> fibonacciNotify(BigInteger number) {
+    public InteractiveGetTransactionHash fibonacciNotify(BigInteger number) {
         final Function function = new Function(
                 FUNC_FIBONACCINOTIFY, 
                 Arrays.<Type>asList(new org.web3j.abi.datatypes.generated.Uint256(number)), 

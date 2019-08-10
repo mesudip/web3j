@@ -10,16 +10,13 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.web3j.tx.response;
+package org.web3j.protocol.core.methods.response;
 
 import org.web3j.protocol.core.Response;
-import org.web3j.protocol.core.methods.response.TransactionReceipt;
 
 import java.util.Optional;
 
-/** Transaction receipt processor callback. */
-public interface Callback {
-    void success(TransactionReceipt transactionReceipt, Optional<Response.Error> error);
-
-    void exception(Exception exception);
+/** eth_getTransactionReceipt. */
+public abstract class TransactionReceiptContainer<T extends TransactionReceipt> extends Response<T > {
+    public abstract Optional<T> getTransactionReceipt();
 }

@@ -24,6 +24,7 @@ import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.tx.Contract;
 import org.web3j.tx.TransactionManager;
 import org.web3j.tx.gas.ContractGasProvider;
+import org.web3j.tx.interactions.InteractiveGetTransactionHash;
 
 /**
  * <p>Auto generated code.
@@ -90,7 +91,7 @@ public class ERC721 extends Contract {
         return executeRemoteCallSingleValueReturn(function, String.class);
     }
 
-    public RemoteCall<TransactionReceipt> approve(String _approved, BigInteger _tokenId, BigInteger weiValue) {
+    public InteractiveGetTransactionHash approve(String _approved, BigInteger _tokenId, BigInteger weiValue) {
         final Function function = new Function(
                 FUNC_APPROVE, 
                 Arrays.<Type>asList(new org.web3j.abi.datatypes.Address(_approved), 
@@ -99,7 +100,7 @@ public class ERC721 extends Contract {
         return executeRemoteCallTransaction(function, weiValue);
     }
 
-    public RemoteCall<TransactionReceipt> transferFrom(String _from, String _to, BigInteger _tokenId, BigInteger weiValue) {
+    public InteractiveGetTransactionHash transferFrom(String _from, String _to, BigInteger _tokenId, BigInteger weiValue) {
         final Function function = new Function(
                 FUNC_TRANSFERFROM, 
                 Arrays.<Type>asList(new org.web3j.abi.datatypes.Address(_from), 
@@ -109,7 +110,7 @@ public class ERC721 extends Contract {
         return executeRemoteCallTransaction(function, weiValue);
     }
 
-    public RemoteCall<TransactionReceipt> safeTransferFrom(String _from, String _to, BigInteger _tokenId, BigInteger weiValue) {
+    public InteractiveGetTransactionHash safeTransferFrom(String _from, String _to, BigInteger _tokenId, BigInteger weiValue) {
         final Function function = new Function(
                 FUNC_SAFETRANSFERFROM, 
                 Arrays.<Type>asList(new org.web3j.abi.datatypes.Address(_from), 
@@ -133,7 +134,7 @@ public class ERC721 extends Contract {
         return executeRemoteCallSingleValueReturn(function, BigInteger.class);
     }
 
-    public RemoteCall<TransactionReceipt> setApprovalForAll(String _operator, Boolean _approved) {
+    public InteractiveGetTransactionHash setApprovalForAll(String _operator, Boolean _approved) {
         final Function function = new Function(
                 FUNC_SETAPPROVALFORALL, 
                 Arrays.<Type>asList(new org.web3j.abi.datatypes.Address(_operator), 
@@ -142,7 +143,7 @@ public class ERC721 extends Contract {
         return executeRemoteCallTransaction(function);
     }
 
-    public RemoteCall<TransactionReceipt> safeTransferFrom(String _from, String _to, BigInteger _tokenId, byte[] data, BigInteger weiValue) {
+    public InteractiveGetTransactionHash safeTransferFrom(String _from, String _to, BigInteger _tokenId, byte[] data, BigInteger weiValue) {
         final Function function = new Function(
                 FUNC_SAFETRANSFERFROM, 
                 Arrays.<Type>asList(new org.web3j.abi.datatypes.Address(_from), 

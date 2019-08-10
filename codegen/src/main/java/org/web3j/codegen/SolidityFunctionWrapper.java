@@ -22,7 +22,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.Callable;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -30,7 +29,6 @@ import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Modifier;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.squareup.javapoet.AnnotationSpec;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.FieldSpec;
@@ -69,6 +67,8 @@ import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.tx.Contract;
 import org.web3j.tx.TransactionManager;
 import org.web3j.tx.gas.ContractGasProvider;
+import org.web3j.tx.interactions.InteractiveBlockChoice;
+import org.web3j.tx.interactions.InteractiveGetTransactionHash;
 import org.web3j.utils.Collection;
 import org.web3j.utils.Strings;
 import org.web3j.utils.Version;
@@ -859,7 +859,7 @@ public class SolidityFunctionWrapper extends Generator {
             } else {
                 nativeReturnTypeName = getWrapperType(typeName);
             }
-            methodBuilder.returns(buildRemoteCall(nativeReturnTypeName));
+            methodBuilder.returns(ParameterizedTypeName.get(ClassName.get(InteractiveBlockChoice.class), nativeReturnTypeName));
 
             methodBuilder.addStatement(
                     "final $T function = "
@@ -880,45 +880,10 @@ public class SolidityFunctionWrapper extends Generator {
                 if (nativeReturnTypeName.equals(ClassName.get(List.class))) {
                     // We return list. So all the list elements should
                     // also be converted to native types
-                    TypeName listType = ParameterizedTypeName.get(List.class, Type.class);
-
-                    CodeBlock.Builder callCode = CodeBlock.builder();
-                    callCode.addStatement(
-                            "$T result = "
-                                    + "($T) executeCallSingleValueReturn(function, $T.class)",
-                            listType,
-                            listType,
-                            nativeReturnTypeName);
-                    callCode.addStatement("return convertToNative(result)");
-
-                    TypeSpec callableType =
-                            TypeSpec.anonymousClassBuilder("")
-                                    .addSuperinterface(
-                                            ParameterizedTypeName.get(
-                                                    ClassName.get(Callable.class),
-                                                    nativeReturnTypeName))
-                                    .addMethod(
-                                            MethodSpec.methodBuilder("call")
-                                                    .addAnnotation(Override.class)
-                                                    .addAnnotation(
-                                                            AnnotationSpec.builder(
-                                                                            SuppressWarnings.class)
-                                                                    .addMember(
-                                                                            "value",
-                                                                            "$S",
-                                                                            "unchecked")
-                                                                    .build())
-                                                    .addModifiers(Modifier.PUBLIC)
-                                                    .addException(Exception.class)
-                                                    .returns(nativeReturnTypeName)
-                                                    .addCode(callCode.build())
-                                                    .build())
-                                    .build();
-
-                    methodBuilder.addStatement(
-                            "return new $T(\n$L)",
-                            buildRemoteCall(nativeReturnTypeName),
-                            callableType);
+                    methodBuilder.addStatement("return executeInteractiveCallSingleValueReturn(" +
+                            "function," +
+                            "$T.class, " +
+                            "(rawResponse)-> convertToNative((List<Type>)rawResponse))",nativeReturnTypeName);
                 } else {
                     methodBuilder.addStatement(
                             "return executeRemoteCallSingleValueReturn(function, $T.class)",
@@ -968,7 +933,7 @@ public class SolidityFunctionWrapper extends Generator {
 
         String functionName = functionDefinition.getName();
 
-        methodBuilder.returns(buildRemoteCall(TypeName.get(TransactionReceipt.class)));
+        methodBuilder.returns(TypeName.get(InteractiveGetTransactionHash.class));
 
         methodBuilder.addStatement(
                 "final $T function = new $T(\n$N, \n$T.<$T>asList($L), \n$T"
@@ -1325,10 +1290,7 @@ public class SolidityFunctionWrapper extends Generator {
 
         CodeBlock.Builder tupleConstructor = CodeBlock.builder();
         tupleConstructor
-                .addStatement(
-                        "$T results = executeCallMultipleValueReturn(function)",
-                        ParameterizedTypeName.get(List.class, Type.class))
-                .add("return new $T(", tupleType)
+                .add("new $T(", tupleType)
                 .add("$>$>");
 
         String resultStringSimple = "\n($T) results.get($L)";
@@ -1365,21 +1327,10 @@ public class SolidityFunctionWrapper extends Generator {
         }
         tupleConstructor.add("$<$<");
 
-        TypeSpec callableType =
-                TypeSpec.anonymousClassBuilder("")
-                        .addSuperinterface(
-                                ParameterizedTypeName.get(ClassName.get(Callable.class), tupleType))
-                        .addMethod(
-                                MethodSpec.methodBuilder("call")
-                                        .addAnnotation(Override.class)
-                                        .addModifiers(Modifier.PUBLIC)
-                                        .addException(Exception.class)
-                                        .returns(tupleType)
-                                        .addCode(tupleConstructor.build())
-                                        .build())
-                        .build();
-
-        methodBuilder.addStatement("return new $T(\n$L)", buildRemoteCall(tupleType), callableType);
+        String build = tupleConstructor.build().toString();
+        build=build.substring(0,build.length()-2    );
+        methodBuilder.addStatement("return executeInteractiveCallMultipleValueReturn(function, (results) ->\n" +
+                                build+")");
     }
 
     private static CodeBlock buildVariableLengthEventInitializer(

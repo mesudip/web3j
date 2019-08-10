@@ -119,7 +119,7 @@ public class EeaTransactionManager extends PrivateTransactionManager {
 
     @Override
     public String sendCall(String to, String data, DefaultBlockParameter defaultBlockParameter)
-            throws IOException {
+            throws IOException, InterruptedException {
         try {
             return executeCall(to, data);
         } catch (TransactionException e) {

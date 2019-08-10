@@ -53,14 +53,14 @@ public abstract class PrivateTransactionManager extends TransactionManager {
     @Override
     protected TransactionReceipt executeTransaction(
             BigInteger gasPrice, BigInteger gasLimit, String to, String data, BigInteger value)
-            throws IOException, TransactionException {
+            throws IOException, TransactionException, InterruptedException {
 
         EthSendTransaction ethSendTransaction =
                 sendTransaction(gasPrice, gasLimit, to, data, value);
         return processResponse(ethSendTransaction);
     }
 
-    protected String executeCall(String to, String data) throws IOException, TransactionException {
+    protected String executeCall(String to, String data) throws IOException, TransactionException, InterruptedException {
         EthSendTransaction est =
                 sendTransaction(
                         BigInteger.valueOf(5000),
@@ -73,7 +73,7 @@ public abstract class PrivateTransactionManager extends TransactionManager {
     }
 
     private TransactionReceipt processResponse(EthSendTransaction transactionResponse)
-            throws IOException, TransactionException {
+            throws IOException, TransactionException, InterruptedException {
         if (transactionResponse.hasError()) {
             throw new RuntimeException(
                     "Error processing transaction request: "

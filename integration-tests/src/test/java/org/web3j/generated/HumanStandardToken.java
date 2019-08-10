@@ -26,6 +26,7 @@ import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.tx.Contract;
 import org.web3j.tx.TransactionManager;
 import org.web3j.tx.gas.ContractGasProvider;
+import org.web3j.tx.interactions.InteractiveGetTransactionHash;
 
 /**
  * <p>Auto generated code.
@@ -94,7 +95,7 @@ public class HumanStandardToken extends Contract {
         return executeRemoteCallSingleValueReturn(function, String.class);
     }
 
-    public RemoteCall<TransactionReceipt> approve(String _spender, BigInteger _value) {
+    public InteractiveGetTransactionHash approve(String _spender, BigInteger _value) {
         final Function function = new Function(
                 FUNC_APPROVE, 
                 Arrays.<Type>asList(new org.web3j.abi.datatypes.Address(_spender), 
@@ -110,7 +111,7 @@ public class HumanStandardToken extends Contract {
         return executeRemoteCallSingleValueReturn(function, BigInteger.class);
     }
 
-    public RemoteCall<TransactionReceipt> transferFrom(String _from, String _to, BigInteger _value) {
+    public InteractiveGetTransactionHash transferFrom(String _from, String _to, BigInteger _value) {
         final Function function = new Function(
                 FUNC_TRANSFERFROM, 
                 Arrays.<Type>asList(new org.web3j.abi.datatypes.Address(_from), 
@@ -148,7 +149,7 @@ public class HumanStandardToken extends Contract {
         return executeRemoteCallSingleValueReturn(function, String.class);
     }
 
-    public RemoteCall<TransactionReceipt> transfer(String _to, BigInteger _value) {
+    public InteractiveGetTransactionHash transfer(String _to, BigInteger _value) {
         final Function function = new Function(
                 FUNC_TRANSFER, 
                 Arrays.<Type>asList(new org.web3j.abi.datatypes.Address(_to), 
@@ -157,7 +158,7 @@ public class HumanStandardToken extends Contract {
         return executeRemoteCallTransaction(function);
     }
 
-    public RemoteCall<TransactionReceipt> approveAndCall(String _spender, BigInteger _value, byte[] _extraData) {
+    public InteractiveGetTransactionHash approveAndCall(String _spender, BigInteger _value, byte[] _extraData) {
         final Function function = new Function(
                 FUNC_APPROVEANDCALL, 
                 Arrays.<Type>asList(new org.web3j.abi.datatypes.Address(_spender), 

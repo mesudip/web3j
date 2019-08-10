@@ -15,8 +15,10 @@ package org.web3j.tx.response;
 import java.io.IOException;
 import java.util.Optional;
 
+import org.web3j.crypto.Pair;
+import org.web3j.protocol.core.Response;
+import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.protocol.eea.Eea;
-import org.web3j.protocol.eea.response.PrivateTransactionReceipt;
 import org.web3j.protocol.exceptions.TransactionException;
 
 public class PollingPrivateTransactionReceiptProcessor extends PrivateTransactionReceiptProcessor {
@@ -30,36 +32,39 @@ public class PollingPrivateTransactionReceiptProcessor extends PrivateTransactio
     }
 
     @Override
-    public PrivateTransactionReceipt waitForTransactionReceipt(String transactionHash)
-            throws IOException, TransactionException {
-
-        return getTransactionReceipt(transactionHash, sleepDuration, attempts);
-    }
-
-    private PrivateTransactionReceipt getTransactionReceipt(
-            String transactionHash, long sleepDuration, int attempts)
-            throws IOException, TransactionException {
-
-        Optional<PrivateTransactionReceipt> receiptOptional =
-                sendTransactionReceiptRequest(transactionHash);
+    public Pair<TransactionReceipt, Optional<Response.Error>> waitForTransactionReceiptResponse(String transactionHash) throws IOException, TransactionException {
+        Pair<? extends Optional<? extends TransactionReceipt>, Optional<Response.Error>> receiptOptional = sendTransactionReceiptAcceptError(transactionHash);
         for (int i = 0; i < attempts; i++) {
-            if (!receiptOptional.isPresent()) {
+            if (!receiptOptional.getFirst().isPresent()) {
                 try {
                     Thread.sleep(sleepDuration);
                 } catch (InterruptedException e) {
                     throw new TransactionException(e);
                 }
-                receiptOptional = sendTransactionReceiptRequest(transactionHash);
+                receiptOptional = sendTransactionReceiptAcceptError(transactionHash);
             } else {
-                return receiptOptional.get();
+                return new Pair<>(receiptOptional.getFirst().get(),receiptOptional.getSecond());
             }
         }
-
         throw new TransactionException(
                 "Transaction receipt was not generated after "
                         + ((sleepDuration * attempts) / 1000
-                                + " seconds for transaction: "
-                                + transactionHash),
+                        + " seconds for transaction: "
+                        + transactionHash),
                 transactionHash);
+    }
+
+    @Deprecated
+    @Override
+    public TransactionReceipt waitForTransactionReceipt(String transactionHash)
+            throws IOException, TransactionException {
+
+        Pair<TransactionReceipt, Optional<Response.Error>> optionalPair = waitForTransactionReceiptResponse(transactionHash);
+        if(optionalPair.getSecond().isPresent()){
+            Response.Error error = optionalPair.getSecond().get();
+                throw new TransactionException(
+                        "Error processing request: " + error.getMessage());
+        }
+        return optionalPair.getFirst();
     }
 }

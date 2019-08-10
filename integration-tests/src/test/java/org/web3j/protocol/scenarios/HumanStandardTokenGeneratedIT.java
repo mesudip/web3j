@@ -78,7 +78,7 @@ public class HumanStandardTokenGeneratedIT extends Scenario {
         BigInteger transferQuantity = BigInteger.valueOf(100_000);
 
         TransactionReceipt aliceTransferReceipt =
-                contract.transfer(BOB.getAddress(), transferQuantity).send();
+                contract.transfer(BOB.getAddress(), transferQuantity).send().send();
 
         TransferEventResponse aliceTransferEventValues =
                 contract.getTransferEvents(aliceTransferReceipt).get(0);
@@ -100,7 +100,7 @@ public class HumanStandardTokenGeneratedIT extends Scenario {
 
         transferQuantity = BigInteger.valueOf(50);
         TransactionReceipt approveReceipt =
-                contract.approve(BOB.getAddress(), transferQuantity).send();
+                contract.approve(BOB.getAddress(), transferQuantity).send().send();
 
         ApprovalEventResponse approvalEventValues =
                 contract.getApprovalEvents(approveReceipt).get(0);
@@ -120,7 +120,7 @@ public class HumanStandardTokenGeneratedIT extends Scenario {
                         contract.getContractAddress(), web3j, BOB, STATIC_GAS_PROVIDER);
 
         TransactionReceipt bobTransferReceipt =
-                bobsContract.transferFrom(aliceAddress, bobAddress, transferQuantity).send();
+                bobsContract.transferFrom(aliceAddress, bobAddress, transferQuantity).send().send();
 
         TransferEventResponse bobTransferEventValues =
                 contract.getTransferEvents(bobTransferReceipt).get(0);

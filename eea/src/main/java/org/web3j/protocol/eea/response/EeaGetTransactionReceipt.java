@@ -22,9 +22,9 @@ import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.ObjectReader;
 
 import org.web3j.protocol.ObjectMapperFactory;
-import org.web3j.protocol.core.Response;
+import org.web3j.protocol.core.methods.response.TransactionReceiptContainer;
 
-public class EeaGetTransactionReceipt extends Response<PrivateTransactionReceipt> {
+public class EeaGetTransactionReceipt extends TransactionReceiptContainer<PrivateTransactionReceipt> {
     public Optional<PrivateTransactionReceipt> getTransactionReceipt() {
         return Optional.ofNullable(getResult());
     }

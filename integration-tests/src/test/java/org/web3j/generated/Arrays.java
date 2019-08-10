@@ -64,7 +64,7 @@ public class Arrays extends Contract {
                         org.web3j.abi.Utils.typeMap(input, org.web3j.abi.datatypes.generated.StaticArray2.class,
                 org.web3j.abi.datatypes.generated.Uint256.class))), 
                 java.util.Arrays.<TypeReference<?>>asList(new TypeReference<DynamicArray<Uint256>>() {}));
-        return new RemoteCall<List>(
+        return RemoteCall.fromCallable(
                 new Callable<List>() {
                     @Override
                     @SuppressWarnings("unchecked")
@@ -79,7 +79,7 @@ public class Arrays extends Contract {
         final Function function = new Function(FUNC_RETURNARRAY, 
                 java.util.Arrays.<Type>asList(), 
                 java.util.Arrays.<TypeReference<?>>asList(new TypeReference<DynamicArray<Address>>() {}));
-        return new RemoteCall<List>(
+        return RemoteCall.fromCallable(
                 new Callable<List>() {
                     @Override
                     @SuppressWarnings("unchecked")
@@ -97,7 +97,7 @@ public class Arrays extends Contract {
                         org.web3j.abi.Utils.typeMap(input, org.web3j.abi.datatypes.generated.StaticArray2.class,
                 org.web3j.abi.datatypes.generated.Uint256.class))), 
                 java.util.Arrays.<TypeReference<?>>asList(new TypeReference<DynamicArray<Uint256>>() {}));
-        return new RemoteCall<List>(
+        return RemoteCall.fromCallable(
                 new Callable<List>() {
                     @Override
                     @SuppressWarnings("unchecked")
@@ -114,7 +114,7 @@ public class Arrays extends Contract {
                         org.web3j.abi.datatypes.generated.Uint256.class,
                         org.web3j.abi.Utils.typeMap(input, org.web3j.abi.datatypes.generated.Uint256.class))), 
                 java.util.Arrays.<TypeReference<?>>asList(new TypeReference<StaticArray10<Uint256>>() {}));
-        return new RemoteCall<List>(
+        return RemoteCall.fromCallable(
                 new Callable<List>() {
                     @Override
                     @SuppressWarnings("unchecked")
@@ -131,7 +131,7 @@ public class Arrays extends Contract {
                         org.web3j.abi.datatypes.generated.Uint256.class,
                         org.web3j.abi.Utils.typeMap(input, org.web3j.abi.datatypes.generated.Uint256.class))), 
                 java.util.Arrays.<TypeReference<?>>asList(new TypeReference<DynamicArray<Uint256>>() {}));
-        return new RemoteCall<List>(
+        return RemoteCall.fromCallable(
                 new Callable<List>() {
                     @Override
                     @SuppressWarnings("unchecked")

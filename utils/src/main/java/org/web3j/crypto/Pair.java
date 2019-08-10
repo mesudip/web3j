@@ -12,19 +12,19 @@
  */
 package org.web3j.crypto;
 
-public class Pair {
-    private final Object first;
-    private final Object second;
+public class Pair<TFirst,TSecond> {
+    private final TFirst first;
+    private final TSecond second;
 
-    public Object getFirst() {
+    public TFirst getFirst() {
         return first;
     }
 
-    public Object getSecond() {
+    public TSecond getSecond() {
         return second;
     }
 
-    public Pair(Object first, Object second) {
+    public Pair(TFirst first, TSecond second) {
         this.first = first;
         this.second = second;
     }

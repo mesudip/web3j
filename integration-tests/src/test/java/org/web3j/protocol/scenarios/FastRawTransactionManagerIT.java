@@ -14,10 +14,7 @@ package org.web3j.protocol.scenarios;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Future;
@@ -28,6 +25,7 @@ import org.junit.Test;
 import org.junit.rules.TestRule;
 
 import org.web3j.protocol.core.RemoteCall;
+import org.web3j.protocol.core.Response;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.tx.FastRawTransactionManager;
 import org.web3j.tx.Transfer;
@@ -104,7 +102,7 @@ public class FastRawTransactionManagerIT extends Scenario {
                                 web3j,
                                 new Callback() {
                                     @Override
-                                    public void accept(TransactionReceipt transactionReceipt) {
+                                    public void success(TransactionReceipt transactionReceipt, Optional<Response.Error> error) {
                                         transactionReceipts.add(transactionReceipt);
                                     }
 

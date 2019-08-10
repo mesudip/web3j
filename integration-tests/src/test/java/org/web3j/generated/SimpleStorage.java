@@ -10,10 +10,10 @@ import org.web3j.abi.datatypes.generated.Uint256;
 import org.web3j.crypto.Credentials;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.RemoteCall;
-import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.tx.Contract;
 import org.web3j.tx.TransactionManager;
 import org.web3j.tx.gas.ContractGasProvider;
+import org.web3j.tx.interactions.InteractiveGetTransactionHash;
 
 /**
  * <p>Auto generated code.
@@ -49,7 +49,7 @@ public class SimpleStorage extends Contract {
         super(BINARY, contractAddress, web3j, transactionManager, contractGasProvider);
     }
 
-    public RemoteCall<TransactionReceipt> set(BigInteger x) {
+    public InteractiveGetTransactionHash set(BigInteger x) {
         final Function function = new Function(
                 FUNC_SET, 
                 Arrays.<Type>asList(new org.web3j.abi.datatypes.generated.Uint256(x)), 

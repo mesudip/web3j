@@ -45,6 +45,8 @@ import org.web3j.protocol.exceptions.TransactionException;
 import org.web3j.tx.exceptions.ContractCallException;
 import org.web3j.tx.gas.ContractGasProvider;
 import org.web3j.tx.gas.StaticGasProvider;
+import org.web3j.tx.interactions.InteractiveBlockChoice;
+import org.web3j.tx.interactions.InteractiveGetTransactionHash;
 import org.web3j.utils.Numeric;
 
 /**
@@ -55,8 +57,8 @@ public abstract class Contract extends ManagedTransaction {
 
     // https://www.reddit.com/r/ethereum/comments/5g8ia6/attention_miners_we_recommend_raising_gas_limit/
     /**
-     * @deprecated ...
      * @see org.web3j.tx.gas.DefaultGasProvider
+     * @deprecated ...
      */
     public static final BigInteger GAS_LIMIT = BigInteger.valueOf(4_300_000);
 
@@ -266,7 +268,7 @@ public abstract class Contract extends ManagedTransaction {
      * @param function to call
      * @return {@link List} of values returned by function call
      */
-    private List<Type> executeCall(Function function) throws IOException {
+    private List<Type> executeCall(Function function) throws IOException, InterruptedException {
         String encodedFunction = FunctionEncoder.encode(function);
 
         String value = call(contractAddress, encodedFunction, defaultBlockParameter);
@@ -274,9 +276,70 @@ public abstract class Contract extends ManagedTransaction {
         return FunctionReturnDecoder.decode(value, function.getOutputParameters());
     }
 
+    protected InteractiveBlockChoice<List<Type>> executeInteractiveCallMultipleValueReturn(Function function){
+        return executeInteractiveCallMultipleValueReturn(function,(v)-> v);
+    }
+    protected <T> InteractiveBlockChoice<T> executeInteractiveCallMultipleValueReturn(Function function, java.util.function.Function<List<Type>,T> mapper){
+        return new InteractiveBlockChoice<>(FunctionEncoder.encode(function), contractAddress, transactionManager,
+                data -> {
+                    List<Type> decode = FunctionReturnDecoder.decode(data, function.getOutputParameters());
+                    return mapper.apply(decode);
+                });
+    }
+
+    @SuppressWarnings("unchecked")
+    protected <T extends Type,Ri,R> InteractiveBlockChoice<R> executeInteractiveCallSingleValueReturn(Function function, Class<Ri> returnType, java.util.function.Function<Ri,R> mapper) {
+        return new InteractiveBlockChoice<R>(FunctionEncoder.encode(function), contractAddress, transactionManager, new InteractiveBlockChoice.CallResponseParser<R>() {
+            @Override
+            public R processSendResponse(String data) throws ContractCallException {
+                List<Type> decode = FunctionReturnDecoder.decode(data, function.getOutputParameters());
+                if(decode.isEmpty()|| decode.get(0)==null) {
+                    throw new ContractCallException(
+                            "Unable to convert response: "
+                                    + data
+                                    + " to expected type: "
+                                    + returnType.getSimpleName());
+                }else{
+                    return mapper.apply((Ri)decode.get(0).getValue());
+                }
+            }
+        });
+    }
+
+    @SuppressWarnings("unchecked")
+    protected <T extends Type,R> InteractiveBlockChoice<R> executeInteractiveCallSingleValueReturn(Function function, Class<R> returnType) {
+        return new InteractiveBlockChoice<R>(FunctionEncoder.encode(function), contractAddress, transactionManager, new InteractiveBlockChoice.CallResponseParser<R>() {
+            @Override
+            public R processSendResponse(String data) throws ContractCallException {
+                List<Type> decode = FunctionReturnDecoder.decode(data, function.getOutputParameters());
+                if(decode.isEmpty()) {
+                    return null;
+                }else{
+                    return (R)decode.get(0).getValue();
+                }
+            }
+        });
+    }
+
+    @SuppressWarnings("unchecked")
+    protected <T extends Type> InteractiveBlockChoice<T> executeInteractiveCallSingleValueReturn(Function function){
+        return new InteractiveBlockChoice<T>(FunctionEncoder.encode(function), contractAddress, transactionManager, new InteractiveBlockChoice.CallResponseParser<T>() {
+            @Override
+            public T processSendResponse(String data) throws ContractCallException {
+                List<Type> decode = FunctionReturnDecoder.decode(data, function.getOutputParameters());
+                if(decode.isEmpty()) {
+                   return null;
+                }
+                else {
+                    return (T) decode.get(0);
+                }
+            }
+        });
+    }
+
     @SuppressWarnings("unchecked")
     protected <T extends Type> T executeCallSingleValueReturn(Function function)
-            throws IOException {
+            throws IOException, InterruptedException {
         List<Type> values = executeCall(function);
         if (!values.isEmpty()) {
             return (T) values.get(0);
@@ -287,7 +350,7 @@ public abstract class Contract extends ManagedTransaction {
 
     @SuppressWarnings("unchecked")
     protected <T extends Type, R> R executeCallSingleValueReturn(
-            Function function, Class<R> returnType) throws IOException {
+            Function function, Class<R> returnType) throws IOException, InterruptedException {
         T result = executeCallSingleValueReturn(function);
         if (result == null) {
             throw new ContractCallException("Empty value (0x) returned from contract");
@@ -307,31 +370,52 @@ public abstract class Contract extends ManagedTransaction {
         }
     }
 
-    protected List<Type> executeCallMultipleValueReturn(Function function) throws IOException {
+    protected List<Type> executeCallMultipleValueReturn(Function function) throws IOException, InterruptedException {
         return executeCall(function);
     }
 
+    /**
+     *
+     * @deprecated deprecated in favour of {@link #executeInteractiveTransaction(Function)}
+     */
+    @Deprecated
     protected TransactionReceipt executeTransaction(Function function)
-            throws IOException, TransactionException {
+            throws IOException, TransactionException, InterruptedException {
         return executeTransaction(function, BigInteger.ZERO);
     }
 
+    /**
+     * @deprecated  deprecated in favour of {@link #executeInteractiveTransaction(Function, BigInteger)}
+     */
+    @Deprecated
     private TransactionReceipt executeTransaction(Function function, BigInteger weiValue)
-            throws IOException, TransactionException {
+            throws IOException, TransactionException, InterruptedException {
         return executeTransaction(FunctionEncoder.encode(function), weiValue, function.getName());
     }
+
+
+    private InteractiveGetTransactionHash executeInteractiveTransaction(Function function) {
+        return executeInteractiveTransaction(function, BigInteger.ZERO);
+    }
+
+    protected InteractiveGetTransactionHash executeInteractiveTransaction(Function function, BigInteger weiValue) {
+        return executeInteractiveTransaction(FunctionEncoder.encode(function), weiValue, function.getName());
+    }
+
 
     /**
      * Given the duration required to execute a transaction.
      *
-     * @param data to send in transaction
+     * @param data     to send in transaction
      * @param weiValue in Wei to send in transaction
      * @return {@link Optional} containing our transaction receipt
-     * @throws IOException if the call to the node fails
+     * @throws IOException          if the call to the node fails
      * @throws TransactionException if the transaction was not mined while waiting
+     * @deprecated  deptecated in favour of {@link #executeInteractiveTransaction(String, BigInteger, String)} )}
      */
+    @Deprecated
     TransactionReceipt executeTransaction(String data, BigInteger weiValue, String funcName)
-            throws TransactionException, IOException {
+            throws TransactionException, IOException, InterruptedException {
 
         TransactionReceipt receipt =
                 send(
@@ -352,31 +436,39 @@ public abstract class Contract extends ManagedTransaction {
         return receipt;
     }
 
-    protected <T extends Type> RemoteCall<T> executeRemoteCallSingleValueReturn(Function function) {
-        return new RemoteCall<>(() -> executeCallSingleValueReturn(function));
+    InteractiveGetTransactionHash executeInteractiveTransaction(String data, BigInteger weiValue, String funcName){
+        return interactiveSend(contractAddress,data,weiValue, gasProvider.getGasPrice(funcName), gasProvider.getGasLimit(funcName));
     }
 
-    protected <T> RemoteCall<T> executeRemoteCallSingleValueReturn(
+    protected <T extends Type> InteractiveBlockChoice<T> executeRemoteCallSingleValueReturn(Function function) {
+        return executeInteractiveCallSingleValueReturn(function);
+    }
+
+    protected <T> InteractiveBlockChoice<T> executeRemoteCallSingleValueReturn(
             Function function, Class<T> returnType) {
-        return new RemoteCall<>(() -> executeCallSingleValueReturn(function, returnType));
+        return executeInteractiveCallSingleValueReturn(function, returnType);
+    }
+    protected <T,R> InteractiveBlockChoice<R> executeRemoteCallSingleValueReturn(
+            Function function, Class<T> returnType, java.util.function.Function<T,R> mapper) {
+        return executeInteractiveCallSingleValueReturn(function, returnType,mapper);
     }
 
-    protected RemoteCall<List<Type>> executeRemoteCallMultipleValueReturn(Function function) {
-        return new RemoteCall<>(() -> executeCallMultipleValueReturn(function));
+    protected InteractiveBlockChoice<List<Type>> executeRemoteCallMultipleValueReturn(Function function) {
+        return executeInteractiveCallMultipleValueReturn(function);
     }
 
-    protected RemoteCall<TransactionReceipt> executeRemoteCallTransaction(Function function) {
-        return new RemoteCall<>(() -> executeTransaction(function));
+    protected InteractiveGetTransactionHash executeRemoteCallTransaction(Function function) {
+        return executeInteractiveTransaction(function);
     }
 
-    protected RemoteCall<TransactionReceipt> executeRemoteCallTransaction(
+    protected InteractiveGetTransactionHash executeRemoteCallTransaction(
             Function function, BigInteger weiValue) {
-        return new RemoteCall<>(() -> executeTransaction(function, weiValue));
+        return executeInteractiveTransaction(function, weiValue);
     }
 
     private static <T extends Contract> T create(
             T contract, String binary, String encodedConstructor, BigInteger value)
-            throws IOException, TransactionException {
+            throws IOException, TransactionException, InterruptedException {
         TransactionReceipt transactionReceipt =
                 contract.executeTransaction(binary + encodedConstructor, value, FUNC_DEPLOY);
 
@@ -503,7 +595,7 @@ public abstract class Contract extends ManagedTransaction {
             String binary,
             String encodedConstructor,
             BigInteger value) {
-        return new RemoteCall<>(
+        return RemoteCall.fromCallable(
                 () ->
                         deploy(
                                 type,
@@ -543,7 +635,7 @@ public abstract class Contract extends ManagedTransaction {
             String binary,
             String encodedConstructor,
             BigInteger value) {
-        return new RemoteCall<>(
+        return RemoteCall.fromCallable(
                 () ->
                         deploy(
                                 type,
@@ -562,7 +654,7 @@ public abstract class Contract extends ManagedTransaction {
             ContractGasProvider contractGasProvider,
             String binary,
             String encodedConstructor) {
-        return new RemoteCall<>(
+        return RemoteCall.fromCallable(
                 () ->
                         deploy(
                                 type,
@@ -583,7 +675,7 @@ public abstract class Contract extends ManagedTransaction {
             String binary,
             String encodedConstructor,
             BigInteger value) {
-        return new RemoteCall<>(
+        return RemoteCall.fromCallable(
                 () ->
                         deploy(
                                 type,
@@ -623,7 +715,7 @@ public abstract class Contract extends ManagedTransaction {
             String binary,
             String encodedConstructor,
             BigInteger value) {
-        return new RemoteCall<>(
+        return RemoteCall.fromCallable(
                 () ->
                         deploy(
                                 type,
@@ -642,7 +734,7 @@ public abstract class Contract extends ManagedTransaction {
             ContractGasProvider contractGasProvider,
             String binary,
             String encodedConstructor) {
-        return new RemoteCall<>(
+        return RemoteCall.fromCallable(
                 () ->
                         deploy(
                                 type,
@@ -726,7 +818,9 @@ public abstract class Contract extends ManagedTransaction {
         return addr == null ? getStaticDeployedAddress(networkId) : addr;
     }
 
-    /** Adds a log field to {@link EventValues}. */
+    /**
+     * Adds a log field to {@link EventValues}.
+     */
     public static class EventValuesWithLog {
         private final EventValues eventValues;
         private final Log log;
