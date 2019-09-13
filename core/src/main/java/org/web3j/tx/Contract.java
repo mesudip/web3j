@@ -45,8 +45,8 @@ import org.web3j.protocol.exceptions.TransactionException;
 import org.web3j.tx.exceptions.ContractCallException;
 import org.web3j.tx.gas.ContractGasProvider;
 import org.web3j.tx.gas.StaticGasProvider;
-import org.web3j.tx.interactions.InteractiveBlockChoice;
-import org.web3j.tx.interactions.InteractiveGetTransactionHash;
+import org.web3j.tx.interactions.EthCallInteraction;
+import org.web3j.tx.interactions.EthTransactionInteraction;
 import org.web3j.utils.Numeric;
 
 /**
@@ -276,11 +276,11 @@ public abstract class Contract extends ManagedTransaction {
         return FunctionReturnDecoder.decode(value, function.getOutputParameters());
     }
 
-    protected InteractiveBlockChoice<List<Type>> executeInteractiveCallMultipleValueReturn(Function function){
+    protected EthCallInteraction<List<Type>> executeInteractiveCallMultipleValueReturn(Function function){
         return executeInteractiveCallMultipleValueReturn(function,(v)-> v);
     }
-    protected <T> InteractiveBlockChoice<T> executeInteractiveCallMultipleValueReturn(Function function, java.util.function.Function<List<Type>,T> mapper){
-        return new InteractiveBlockChoice<>(FunctionEncoder.encode(function), contractAddress, transactionManager,
+    protected <T> EthCallInteraction<T> executeInteractiveCallMultipleValueReturn(Function function, java.util.function.Function<List<Type>,T> mapper){
+        return new EthCallInteraction<>(FunctionEncoder.encode(function), contractAddress, transactionManager,
                 data -> {
                     List<Type> decode = FunctionReturnDecoder.decode(data, function.getOutputParameters());
                     return mapper.apply(decode);
@@ -288,8 +288,8 @@ public abstract class Contract extends ManagedTransaction {
     }
 
     @SuppressWarnings("unchecked")
-    protected <T extends Type,Ri,R> InteractiveBlockChoice<R> executeInteractiveCallSingleValueReturn(Function function, Class<Ri> returnType, java.util.function.Function<Ri,R> mapper) {
-        return new InteractiveBlockChoice<R>(FunctionEncoder.encode(function), contractAddress, transactionManager, new InteractiveBlockChoice.CallResponseParser<R>() {
+    protected <T extends Type,Ri,R> EthCallInteraction<R> executeInteractiveCallSingleValueReturn(Function function, Class<Ri> returnType, java.util.function.Function<Ri,R> mapper) {
+        return new EthCallInteraction<R>(FunctionEncoder.encode(function), contractAddress, transactionManager, new EthCallInteraction.CallResponseParser<R>() {
             @Override
             public R processSendResponse(String data) throws ContractCallException {
                 List<Type> decode = FunctionReturnDecoder.decode(data, function.getOutputParameters());
@@ -307,8 +307,8 @@ public abstract class Contract extends ManagedTransaction {
     }
 
     @SuppressWarnings("unchecked")
-    protected <T extends Type,R> InteractiveBlockChoice<R> executeInteractiveCallSingleValueReturn(Function function, Class<R> returnType) {
-        return new InteractiveBlockChoice<R>(FunctionEncoder.encode(function), contractAddress, transactionManager, new InteractiveBlockChoice.CallResponseParser<R>() {
+    protected <T extends Type,R> EthCallInteraction<R> executeInteractiveCallSingleValueReturn(Function function, Class<R> returnType) {
+        return new EthCallInteraction<R>(FunctionEncoder.encode(function), contractAddress, transactionManager, new EthCallInteraction.CallResponseParser<R>() {
             @Override
             public R processSendResponse(String data) throws ContractCallException {
                 List<Type> decode = FunctionReturnDecoder.decode(data, function.getOutputParameters());
@@ -322,8 +322,8 @@ public abstract class Contract extends ManagedTransaction {
     }
 
     @SuppressWarnings("unchecked")
-    protected <T extends Type> InteractiveBlockChoice<T> executeInteractiveCallSingleValueReturn(Function function){
-        return new InteractiveBlockChoice<T>(FunctionEncoder.encode(function), contractAddress, transactionManager, new InteractiveBlockChoice.CallResponseParser<T>() {
+    protected <T extends Type> EthCallInteraction<T> executeInteractiveCallSingleValueReturn(Function function){
+        return new EthCallInteraction<T>(FunctionEncoder.encode(function), contractAddress, transactionManager, new EthCallInteraction.CallResponseParser<T>() {
             @Override
             public T processSendResponse(String data) throws ContractCallException {
                 List<Type> decode = FunctionReturnDecoder.decode(data, function.getOutputParameters());
@@ -394,11 +394,11 @@ public abstract class Contract extends ManagedTransaction {
     }
 
 
-    private InteractiveGetTransactionHash executeInteractiveTransaction(Function function) {
+    private EthTransactionInteraction executeInteractiveTransaction(Function function) {
         return executeInteractiveTransaction(function, BigInteger.ZERO);
     }
 
-    protected InteractiveGetTransactionHash executeInteractiveTransaction(Function function, BigInteger weiValue) {
+    protected EthTransactionInteraction executeInteractiveTransaction(Function function, BigInteger weiValue) {
         return executeInteractiveTransaction(FunctionEncoder.encode(function), weiValue, function.getName());
     }
 
@@ -436,32 +436,32 @@ public abstract class Contract extends ManagedTransaction {
         return receipt;
     }
 
-    InteractiveGetTransactionHash executeInteractiveTransaction(String data, BigInteger weiValue, String funcName){
+    EthTransactionInteraction executeInteractiveTransaction(String data, BigInteger weiValue, String funcName){
         return interactiveSend(contractAddress,data,weiValue, gasProvider.getGasPrice(funcName), gasProvider.getGasLimit(funcName));
     }
 
-    protected <T extends Type> InteractiveBlockChoice<T> executeRemoteCallSingleValueReturn(Function function) {
+    protected <T extends Type> EthCallInteraction<T> executeRemoteCallSingleValueReturn(Function function) {
         return executeInteractiveCallSingleValueReturn(function);
     }
 
-    protected <T> InteractiveBlockChoice<T> executeRemoteCallSingleValueReturn(
+    protected <T> EthCallInteraction<T> executeRemoteCallSingleValueReturn(
             Function function, Class<T> returnType) {
         return executeInteractiveCallSingleValueReturn(function, returnType);
     }
-    protected <T,R> InteractiveBlockChoice<R> executeRemoteCallSingleValueReturn(
+    protected <T,R> EthCallInteraction<R> executeRemoteCallSingleValueReturn(
             Function function, Class<T> returnType, java.util.function.Function<T,R> mapper) {
         return executeInteractiveCallSingleValueReturn(function, returnType,mapper);
     }
 
-    protected InteractiveBlockChoice<List<Type>> executeRemoteCallMultipleValueReturn(Function function) {
+    protected EthCallInteraction<List<Type>> executeRemoteCallMultipleValueReturn(Function function) {
         return executeInteractiveCallMultipleValueReturn(function);
     }
 
-    protected InteractiveGetTransactionHash executeRemoteCallTransaction(Function function) {
+    protected EthTransactionInteraction executeRemoteCallTransaction(Function function) {
         return executeInteractiveTransaction(function);
     }
 
-    protected InteractiveGetTransactionHash executeRemoteCallTransaction(
+    protected EthTransactionInteraction executeRemoteCallTransaction(
             Function function, BigInteger weiValue) {
         return executeInteractiveTransaction(function, weiValue);
     }

@@ -25,7 +25,7 @@ import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.tx.Contract;
 import org.web3j.tx.TransactionManager;
 import org.web3j.tx.gas.ContractGasProvider;
-import org.web3j.tx.interactions.InteractiveGetTransactionHash;
+import org.web3j.tx.interactions.EthTransactionInteraction;
 
 /**
  * <p>Auto generated code.
@@ -90,7 +90,7 @@ public class ERC20 extends Contract {
         return executeRemoteCallSingleValueReturn(function, String.class);
     }
 
-    public InteractiveGetTransactionHash approve(String _spender, BigInteger _value) {
+    public EthTransactionInteraction approve(String _spender, BigInteger _value) {
         final Function function = new Function(
                 FUNC_APPROVE, 
                 Arrays.<Type>asList(new org.web3j.abi.datatypes.Address(_spender), 
@@ -106,7 +106,7 @@ public class ERC20 extends Contract {
         return executeRemoteCallSingleValueReturn(function, BigInteger.class);
     }
 
-    public InteractiveGetTransactionHash transferFrom(String _from, String _to, BigInteger _value) {
+    public EthTransactionInteraction transferFrom(String _from, String _to, BigInteger _value) {
         final Function function = new Function(
                 FUNC_TRANSFERFROM, 
                 Arrays.<Type>asList(new org.web3j.abi.datatypes.Address(_from), 
@@ -137,7 +137,7 @@ public class ERC20 extends Contract {
         return executeRemoteCallSingleValueReturn(function, String.class);
     }
 
-    public InteractiveGetTransactionHash transfer(String _to, BigInteger _value) {
+    public EthTransactionInteraction transfer(String _to, BigInteger _value) {
         final Function function = new Function(
                 FUNC_TRANSFER, 
                 Arrays.<Type>asList(new org.web3j.abi.datatypes.Address(_to), 

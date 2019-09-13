@@ -14,7 +14,7 @@ import org.web3j.protocol.core.RemoteCall;
 import org.web3j.tx.Contract;
 import org.web3j.tx.TransactionManager;
 import org.web3j.tx.gas.ContractGasProvider;
-import org.web3j.tx.interactions.InteractiveGetTransactionHash;
+import org.web3j.tx.interactions.EthTransactionInteraction;
 
 /**
  * <p>Auto generated code.
@@ -52,7 +52,7 @@ public class Greeter extends Contract {
         super(BINARY, contractAddress, web3j, transactionManager, contractGasProvider);
     }
 
-    public InteractiveGetTransactionHash kill() {
+    public EthTransactionInteraction kill() {
         final Function function = new Function(
                 FUNC_KILL, 
                 Arrays.<Type>asList(), 
@@ -60,7 +60,7 @@ public class Greeter extends Contract {
         return executeRemoteCallTransaction(function);
     }
 
-    public InteractiveGetTransactionHash newGreeting(String _greeting) {
+    public EthTransactionInteraction newGreeting(String _greeting) {
         final Function function = new Function(
                 FUNC_NEWGREETING, 
                 Arrays.<Type>asList(new org.web3j.abi.datatypes.Utf8String(_greeting)), 

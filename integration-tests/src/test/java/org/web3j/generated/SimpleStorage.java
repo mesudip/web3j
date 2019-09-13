@@ -13,7 +13,7 @@ import org.web3j.protocol.core.RemoteCall;
 import org.web3j.tx.Contract;
 import org.web3j.tx.TransactionManager;
 import org.web3j.tx.gas.ContractGasProvider;
-import org.web3j.tx.interactions.InteractiveGetTransactionHash;
+import org.web3j.tx.interactions.EthTransactionInteraction;
 
 /**
  * <p>Auto generated code.
@@ -49,7 +49,7 @@ public class SimpleStorage extends Contract {
         super(BINARY, contractAddress, web3j, transactionManager, contractGasProvider);
     }
 
-    public InteractiveGetTransactionHash set(BigInteger x) {
+    public EthTransactionInteraction set(BigInteger x) {
         final Function function = new Function(
                 FUNC_SET, 
                 Arrays.<Type>asList(new org.web3j.abi.datatypes.generated.Uint256(x)), 

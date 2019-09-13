@@ -20,9 +20,9 @@ import org.web3j.protocol.core.DefaultBlockParameter;
 import org.web3j.protocol.core.methods.response.EthSendTransaction;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.protocol.exceptions.TransactionException;
-import org.web3j.tx.interactions.RawResponseInteractiveBlockChoice;
-import org.web3j.tx.interactions.InteractiveGetTransactionHash;
-import org.web3j.tx.interactions.InteractiveGetTransactionReceipt;
+import org.web3j.tx.interactions.EthTransactionInteraction;
+import org.web3j.tx.interactions.EthTransactionReceiptInteraction;
+import org.web3j.tx.interactions.RawResponseEthCallInteraction;
 import org.web3j.tx.response.PollingTransactionReceiptProcessor;
 import org.web3j.tx.response.TransactionReceiptProcessor;
 
@@ -71,16 +71,16 @@ public abstract class TransactionManager {
             BigInteger gasPrice, BigInteger gasLimit, String to, String data, BigInteger value)
             throws IOException;
 
-    public InteractiveGetTransactionReceipt sendTransactionInteractive(InteractiveGetTransactionHash interactiveGetTransactionHash, String to, String data, BigInteger value, BigInteger gasPrice, BigInteger gasLimit) throws IOException {
+    public EthTransactionReceiptInteraction sendTransactionInteractive(EthTransactionInteraction ethTransactionInteraction, String to, String data, BigInteger value, BigInteger gasPrice, BigInteger gasLimit) throws IOException {
         EthSendTransaction ethSendTransaction = sendTransaction(gasPrice, gasLimit, to, data, value);
-        return new InteractiveGetTransactionReceipt(ethSendTransaction,this.transactionReceiptProcessor, interactiveGetTransactionHash);
+        return new EthTransactionReceiptInteraction(ethSendTransaction,this.transactionReceiptProcessor, ethTransactionInteraction);
     }
 
     public abstract String sendCall(
             String to, String data, DefaultBlockParameter defaultBlockParameter) throws IOException, InterruptedException;
 
-    public RawResponseInteractiveBlockChoice sendInteractiveCall(String to, String data){
-        return new RawResponseInteractiveBlockChoice(data,to,this);
+    public RawResponseEthCallInteraction sendInteractiveCall(String to, String data){
+        return new RawResponseEthCallInteraction(data,to,this);
     }
 
 

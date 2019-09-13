@@ -10,7 +10,7 @@ import org.web3j.tx.exceptions.ContractCallException;
 import java.io.IOException;
 import java.math.BigInteger;
 
-public class InteractiveBlockChoice<T> implements RemoteCall<T> {
+public class EthCallInteraction<T> implements RemoteCall<T> {
     public interface CallResponseParser<T>{
         T processSendResponse( String data) throws ContractCallException;
     }
@@ -21,18 +21,18 @@ public class InteractiveBlockChoice<T> implements RemoteCall<T> {
     private DefaultBlockParameter blockParameter= DefaultBlockParameterName.LATEST;
     private   final CallResponseParser<T> callResponseParser;
 
-    public InteractiveBlockChoice(String data, String to, TransactionManager transactionManager,CallResponseParser<T> callResponseParser) {
+    public EthCallInteraction(String data, String to, TransactionManager transactionManager, CallResponseParser<T> callResponseParser) {
         this.data = data;
         this.to = to;
         this.transactionManager = transactionManager;
         this.callResponseParser=callResponseParser;
     }
 
-    public InteractiveBlockChoice<T> atBlockNumber(BigInteger blockNumber){
+    public EthCallInteraction<T> atBlockNumber(BigInteger blockNumber){
         blockParameter= DefaultBlockParameter.valueOf(blockNumber);
         return this;
     }
-    public  InteractiveBlockChoice<T> atBlockNumber(long blockNumber){
+    public EthCallInteraction<T> atBlockNumber(long blockNumber){
         return atBlockNumber(BigInteger.valueOf(blockNumber));
     }
     public T send() throws IOException, ContractCallException, InterruptedException {

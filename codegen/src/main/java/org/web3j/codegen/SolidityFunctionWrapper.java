@@ -67,8 +67,8 @@ import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.tx.Contract;
 import org.web3j.tx.TransactionManager;
 import org.web3j.tx.gas.ContractGasProvider;
-import org.web3j.tx.interactions.InteractiveBlockChoice;
-import org.web3j.tx.interactions.InteractiveGetTransactionHash;
+import org.web3j.tx.interactions.EthCallInteraction;
+import org.web3j.tx.interactions.EthTransactionInteraction;
 import org.web3j.utils.Collection;
 import org.web3j.utils.Strings;
 import org.web3j.utils.Version;
@@ -859,7 +859,7 @@ public class SolidityFunctionWrapper extends Generator {
             } else {
                 nativeReturnTypeName = getWrapperType(typeName);
             }
-            methodBuilder.returns(ParameterizedTypeName.get(ClassName.get(InteractiveBlockChoice.class), nativeReturnTypeName));
+            methodBuilder.returns(ParameterizedTypeName.get(ClassName.get(EthCallInteraction.class), nativeReturnTypeName));
 
             methodBuilder.addStatement(
                     "final $T function = "
@@ -933,7 +933,7 @@ public class SolidityFunctionWrapper extends Generator {
 
         String functionName = functionDefinition.getName();
 
-        methodBuilder.returns(TypeName.get(InteractiveGetTransactionHash.class));
+        methodBuilder.returns(TypeName.get(EthTransactionInteraction.class));
 
         methodBuilder.addStatement(
                 "final $T function = new $T(\n$N, \n$T.<$T>asList($L), \n$T"

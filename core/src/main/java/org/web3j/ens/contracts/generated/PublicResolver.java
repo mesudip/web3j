@@ -30,7 +30,7 @@ import org.web3j.tuples.generated.Tuple2;
 import org.web3j.tx.Contract;
 import org.web3j.tx.TransactionManager;
 import org.web3j.tx.gas.ContractGasProvider;
-import org.web3j.tx.interactions.InteractiveGetTransactionHash;
+import org.web3j.tx.interactions.EthTransactionInteraction;
 
 /**
  * <p>Auto generated code.
@@ -119,7 +119,7 @@ public class PublicResolver extends Contract {
         return executeRemoteCallSingleValueReturn(function, Boolean.class);
     }
 
-    public InteractiveGetTransactionHash setText(byte[] node, String key, String value) {
+    public EthTransactionInteraction setText(byte[] node, String key, String value) {
         final Function function = new Function(
                 FUNC_SETTEXT, 
                 Arrays.<Type>asList(new org.web3j.abi.datatypes.generated.Bytes32(node), 
@@ -146,7 +146,7 @@ public class PublicResolver extends Contract {
                 });
     }
 
-    public InteractiveGetTransactionHash setPubkey(byte[] node, byte[] x, byte[] y) {
+    public EthTransactionInteraction setPubkey(byte[] node, byte[] x, byte[] y) {
         final Function function = new Function(
                 FUNC_SETPUBKEY, 
                 Arrays.<Type>asList(new org.web3j.abi.datatypes.generated.Bytes32(node), 
@@ -178,7 +178,7 @@ public class PublicResolver extends Contract {
         return executeRemoteCallSingleValueReturn(function, String.class);
     }
 
-    public InteractiveGetTransactionHash setABI(byte[] node, BigInteger contentType, byte[] data) {
+    public EthTransactionInteraction setABI(byte[] node, BigInteger contentType, byte[] data) {
         final Function function = new Function(
                 FUNC_SETABI, 
                 Arrays.<Type>asList(new org.web3j.abi.datatypes.generated.Bytes32(node), 
@@ -195,7 +195,7 @@ public class PublicResolver extends Contract {
         return executeRemoteCallSingleValueReturn(function, String.class);
     }
 
-    public InteractiveGetTransactionHash setName(byte[] node, String name) {
+    public EthTransactionInteraction setName(byte[] node, String name) {
         final Function function = new Function(
                 FUNC_SETNAME, 
                 Arrays.<Type>asList(new org.web3j.abi.datatypes.generated.Bytes32(node), 
@@ -204,7 +204,7 @@ public class PublicResolver extends Contract {
         return executeRemoteCallTransaction(function);
     }
 
-    public InteractiveGetTransactionHash setContent(byte[] node, byte[] hash) {
+    public EthTransactionInteraction setContent(byte[] node, byte[] hash) {
         final Function function = new Function(
                 FUNC_SETCONTENT, 
                 Arrays.<Type>asList(new org.web3j.abi.datatypes.generated.Bytes32(node), 
@@ -229,7 +229,7 @@ public class PublicResolver extends Contract {
                 });
     }
 
-    public InteractiveGetTransactionHash setAddr(byte[] node, String addr) {
+    public EthTransactionInteraction setAddr(byte[] node, String addr) {
         final Function function = new Function(
                 FUNC_SETADDR, 
                 Arrays.<Type>asList(new org.web3j.abi.datatypes.generated.Bytes32(node), 

@@ -54,7 +54,7 @@ import org.web3j.tx.exceptions.FailedReceiptException;
 import org.web3j.tx.gas.ContractGasProvider;
 import org.web3j.tx.gas.DefaultGasProvider;
 import org.web3j.tx.gas.StaticGasProvider;
-import org.web3j.tx.interactions.InteractiveGetTransactionHash;
+import org.web3j.tx.interactions.EthTransactionInteraction;
 import org.web3j.utils.Async;
 import org.web3j.utils.Numeric;
 
@@ -560,7 +560,7 @@ public class ContractTest extends ManagedTransactionTester {
             return executeRemoteCallMultipleValueReturn(function);
         }
 
-        public InteractiveGetTransactionHash performTransaction(Address address, Uint256 amount) {
+        public EthTransactionInteraction performTransaction(Address address, Uint256 amount) {
             Function function =
                     new Function(
                             "approve",

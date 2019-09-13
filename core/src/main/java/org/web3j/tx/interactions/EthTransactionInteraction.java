@@ -16,8 +16,8 @@ import java.math.RoundingMode;
  * Interactions before submitting a transaction
  * You can override gasPrice and gasLimit obtained from the gasProvider here before sending the transactions.
  */
-public final class InteractiveGetTransactionHash implements RemoteCall<InteractiveGetTransactionReceipt> {
-    private static final Logger logger= LoggerFactory.getLogger(InteractiveGetTransactionHash.class);
+public final class EthTransactionInteraction implements RemoteCall<EthTransactionReceiptInteraction> {
+    private static final Logger logger= LoggerFactory.getLogger(EthTransactionInteraction.class);
     BigInteger gasPrice;
     BigInteger gasLimit;
     private final String data;
@@ -25,7 +25,7 @@ public final class InteractiveGetTransactionHash implements RemoteCall<Interacti
     private final String to;
     private final TransactionManager transactionManager;
 
-    public InteractiveGetTransactionHash(TransactionManager transactionManager, BigInteger gasPrice, BigInteger gasLimit, String to, String data, BigInteger weiValue) {
+    public EthTransactionInteraction(TransactionManager transactionManager, BigInteger gasPrice, BigInteger gasLimit, String to, String data, BigInteger weiValue) {
         this.transactionManager = transactionManager;
         this.gasLimit = gasLimit;
         this.gasPrice = gasPrice;
@@ -38,12 +38,12 @@ public final class InteractiveGetTransactionHash implements RemoteCall<Interacti
         gasPrice = (BigDecimal.valueOf(price * 1_000_000_000).setScale(0, RoundingMode.FLOOR)).toBigInteger();
     }
 
-    public InteractiveGetTransactionHash setGasPrice(BigInteger gasPrice) {
+    public EthTransactionInteraction setGasPrice(BigInteger gasPrice) {
         this.gasPrice = gasPrice;
         return this;
     }
 
-    public InteractiveGetTransactionHash setGasLimit(BigInteger gasLimit) {
+    public EthTransactionInteraction setGasLimit(BigInteger gasLimit) {
         this.gasLimit = gasLimit;
         return this;
     }
@@ -51,12 +51,12 @@ public final class InteractiveGetTransactionHash implements RemoteCall<Interacti
 
     /**
      * This should be deprecated so that send() should not be used for getting TransactionReceipt directly.
-     * Later the deprecation will be remed and the function should return an instance of InteractiveGetTransactionReceipt
+     * Later the deprecation will be remed and the function should return an instance of EthTransactionReceiptInteraction
      * @return
      * @throws IOException
      */
 
-    public InteractiveGetTransactionReceipt send() throws IOException{
+    public EthTransactionReceiptInteraction send() throws IOException{
         return transactionManager.sendTransactionInteractive(this, to, data, weiValue, gasPrice, gasLimit);
     }
 
@@ -68,6 +68,9 @@ public final class InteractiveGetTransactionHash implements RemoteCall<Interacti
         Async.submit(()->{ send(callBack);});
     }
 
+    public String getTxData(){
+        return data;
+    }
     /**
      * same as send() but the code about what to do after send is passed as parameter.
      * Note that this methods blocks the current thread until the all the operation is not complete.
@@ -75,7 +78,7 @@ public final class InteractiveGetTransactionHash implements RemoteCall<Interacti
      */
     public void send(TransactionCallBack callBack){
         try {
-            InteractiveGetTransactionReceipt send = this.send();
+            EthTransactionReceiptInteraction send = this.send();
             String transactionHash=send.getTransactionHash();
             try {
                 callBack.transactionHash(transactionHash);

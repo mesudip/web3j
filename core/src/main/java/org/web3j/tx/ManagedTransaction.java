@@ -21,9 +21,8 @@ import org.web3j.protocol.core.DefaultBlockParameter;
 import org.web3j.protocol.core.methods.response.EthGasPrice;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.protocol.exceptions.TransactionException;
-import org.web3j.tx.interactions.InteractiveBlockChoice;
-import org.web3j.tx.interactions.InteractiveGetTransactionHash;
-import org.web3j.tx.interactions.RawResponseInteractiveBlockChoice;
+import org.web3j.tx.interactions.EthTransactionInteraction;
+import org.web3j.tx.interactions.RawResponseEthCallInteraction;
 
 /**
  * Generic transaction manager.
@@ -102,8 +101,8 @@ public abstract class ManagedTransaction {
         return transactionManager.executeTransaction(gasPrice, gasLimit, to, data, value);
     }
 
-    InteractiveGetTransactionHash interactiveSend(String to, String data, BigInteger value, BigInteger gasPrice, BigInteger gasLimit) {
-        return new InteractiveGetTransactionHash(transactionManager, gasPrice, gasLimit, to, data, value);
+    EthTransactionInteraction interactiveSend(String to, String data, BigInteger value, BigInteger gasPrice, BigInteger gasLimit) {
+        return new EthTransactionInteraction(transactionManager, gasPrice, gasLimit, to, data, value);
     }
 
     protected String call(String to, String data, DefaultBlockParameter defaultBlockParameter)
@@ -111,7 +110,7 @@ public abstract class ManagedTransaction {
 
         return transactionManager.sendCall(to, data, defaultBlockParameter);
     }
-    public RawResponseInteractiveBlockChoice interactiveCall(String to, String data){
+    public RawResponseEthCallInteraction interactiveCall(String to, String data){
         return transactionManager.sendInteractiveCall(to,data);
     }
 }

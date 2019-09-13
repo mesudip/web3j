@@ -19,17 +19,17 @@ import java.math.BigInteger;
 import java.util.Optional;
 
 
-public class InteractiveGetTransactionReceipt implements RemoteCall<TransactionReceipt> {
+public class EthTransactionReceiptInteraction implements RemoteCall<TransactionReceipt> {
 
-    Logger logger = LoggerFactory.getLogger(InteractiveGetTransactionReceipt.class);
+    Logger logger = LoggerFactory.getLogger(EthTransactionReceiptInteraction.class);
     private final EthSendTransaction ethSendTransaction;
     private final TransactionReceiptProcessor transactionReceiptProcessor;
-    private final InteractiveGetTransactionHash interactiveGetTransactionHash;
+    private final EthTransactionInteraction ethTransactionInteraction;
 
-    public InteractiveGetTransactionReceipt(EthSendTransaction ethSendTransaction, TransactionReceiptProcessor transactionReceiptProcessor, InteractiveGetTransactionHash interactiveGetTransactionHash) {
+    public EthTransactionReceiptInteraction(EthSendTransaction ethSendTransaction, TransactionReceiptProcessor transactionReceiptProcessor, EthTransactionInteraction ethTransactionInteraction) {
         this.ethSendTransaction = ethSendTransaction;
         this.transactionReceiptProcessor = transactionReceiptProcessor;
-        this.interactiveGetTransactionHash = interactiveGetTransactionHash;
+        this.ethTransactionInteraction = ethTransactionInteraction;
     }
 
     @Override
@@ -98,11 +98,11 @@ public class InteractiveGetTransactionReceipt implements RemoteCall<TransactionR
     }
 
     public BigInteger getGasPrice() {
-        return interactiveGetTransactionHash.gasPrice;
+        return ethTransactionInteraction.gasPrice;
     }
 
     public BigInteger getGasLimit() {
-        return interactiveGetTransactionHash.gasLimit;
+        return ethTransactionInteraction.gasLimit;
     }
 
     private  Pair<? extends TransactionReceipt, Optional<Response.Error>> waitAndProcessResponse() throws TransactionException, InterruptedException, IOException {
@@ -112,7 +112,7 @@ public class InteractiveGetTransactionReceipt implements RemoteCall<TransactionR
             Response.Error error = new Response.Error();
             error.setCode(Numeric.decodeQuantity(first.getStatus()).intValue());
             error.setData(first.getStatus());
-            if (interactiveGetTransactionHash.gasPrice.equals(first.getGasUsed())) {
+            if (ethTransactionInteraction.gasPrice.equals(first.getGasUsed())) {
                 error.setMessage("Transaction has failed with status: " + first.getStatus() + ".(not enough gas?)");
             } else {
                 error.setMessage("Transaction has failed with status: " + first.getStatus()+ ". Gas used: "+first.getGasUsed());

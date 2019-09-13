@@ -24,7 +24,7 @@ import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.tx.Contract;
 import org.web3j.tx.TransactionManager;
 import org.web3j.tx.gas.ContractGasProvider;
-import org.web3j.tx.interactions.InteractiveGetTransactionHash;
+import org.web3j.tx.interactions.EthTransactionInteraction;
 
 /**
  * <p>Auto generated code.
@@ -80,7 +80,7 @@ public class MetaCoin extends Contract {
         return executeRemoteCallSingleValueReturn(function, BigInteger.class);
     }
 
-    public InteractiveGetTransactionHash sendCoin(String receiver, BigInteger amount) {
+    public EthTransactionInteraction sendCoin(String receiver, BigInteger amount) {
         final Function function = new Function(
                 FUNC_SENDCOIN, 
                 Arrays.<Type>asList(new org.web3j.abi.datatypes.Address(receiver), 
