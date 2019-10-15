@@ -12,16 +12,18 @@
  */
 package org.web3j.tx;
 
-import java.io.IOException;
-import java.math.BigInteger;
-
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameter;
 import org.web3j.protocol.core.methods.response.EthSendTransaction;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.protocol.exceptions.TransactionException;
+import org.web3j.tx.interactions.EthCallInteraction;
+import org.web3j.tx.interactions.EthTransactionReceiptInteraction;
 import org.web3j.tx.response.PollingTransactionReceiptProcessor;
 import org.web3j.tx.response.TransactionReceiptProcessor;
+
+import java.io.IOException;
+import java.math.BigInteger;
 
 import static org.web3j.protocol.core.JsonRpc2_0Web3j.DEFAULT_BLOCK_TIME;
 
@@ -55,13 +57,23 @@ public abstract class TransactionManager {
         this(new PollingTransactionReceiptProcessor(web3j, sleepDuration, attempts), fromAddress);
     }
 
+    /**
+     * Use {@link #submitTransaction(BigInteger, BigInteger, String, String, BigInteger)} instead
+     * Code should  be changed to submitTransaction().waitForReceipt() to get same result as before
+     */
+    @Deprecated
     protected TransactionReceipt executeTransaction(
             BigInteger gasPrice, BigInteger gasLimit, String to, String data, BigInteger value)
-            throws IOException, TransactionException {
+            throws IOException, TransactionException, InterruptedException {
 
         return executeTransaction(gasPrice, gasLimit, to, data, value, false);
     }
 
+    /**
+     * @deprecated use {@link #submitTransaction(BigInteger, BigInteger, String, String, BigInteger, boolean)} instead
+     * Code should  be changed to submitTransaction().waitForReceipt() to get same result as before
+     */
+    @Deprecated
     protected TransactionReceipt executeTransaction(
             BigInteger gasPrice,
             BigInteger gasLimit,
@@ -69,7 +81,7 @@ public abstract class TransactionManager {
             String data,
             BigInteger value,
             boolean constructor)
-            throws IOException, TransactionException {
+            throws IOException, TransactionException, InterruptedException {
 
         EthSendTransaction ethSendTransaction =
                 sendTransaction(gasPrice, gasLimit, to, data, value, constructor);
@@ -81,12 +93,26 @@ public abstract class TransactionManager {
             throws IOException {
         return sendTransaction(gasPrice, gasLimit, to, data, value, false);
     }
+    public EthSendTransaction sendTransaction(
+            BigInteger gasPrice, BigInteger gasLimit, String to, String data, BigInteger nounce,BigInteger value)
+            throws IOException {
+        return sendTransaction(gasPrice, gasLimit, to, data, value, false);
+    }
 
+    public EthSendTransaction sendTransaction(BigInteger gasPrice,
+                                              BigInteger gasLimit,
+                                              String to,
+                                              String data,
+                                              BigInteger value,
+                                              boolean constructor) throws IOException {
+        return sendTransaction(gasPrice, gasLimit, to, data, null, value, constructor);
+    }
     public abstract EthSendTransaction sendTransaction(
             BigInteger gasPrice,
             BigInteger gasLimit,
             String to,
             String data,
+            BigInteger nounce,
             BigInteger value,
             boolean constructor)
             throws IOException;
@@ -94,12 +120,30 @@ public abstract class TransactionManager {
     public abstract String sendCall(
             String to, String data, DefaultBlockParameter defaultBlockParameter) throws IOException;
 
+    public EthTransactionReceiptInteraction submitTransaction(BigInteger gasPrice, BigInteger gasLimit, String to, String data, BigInteger value,boolean constructor) throws IOException {
+        EthSendTransaction ethSendTransaction = sendTransaction(gasPrice, gasLimit, to, data, value,constructor);
+        return new EthTransactionReceiptInteraction(gasLimit, ethSendTransaction, this.transactionReceiptProcessor);
+    }
+    public EthTransactionReceiptInteraction submitTransaction(BigInteger gasPrice, BigInteger gasLimit, String to, String data, BigInteger value) throws IOException {
+        return submitTransaction(gasPrice,gasLimit,to,data,value,false);
+    }
+
+    public EthCallInteraction<String> sendInteractiveCall(String to, String data) {
+        return sendInteractiveCall(to, data, a -> a);
+    }
+
+    public <T> EthCallInteraction<T> sendInteractiveCall(String to, String data, EthCallInteraction.CallResponseParser<T> responseParser) {
+        return new EthCallInteraction<T>(data, to, this, responseParser);
+    }
+
+
     public String getFromAddress() {
         return fromAddress;
     }
 
+    @Deprecated
     private TransactionReceipt processResponse(EthSendTransaction transactionResponse)
-            throws IOException, TransactionException {
+            throws IOException, TransactionException, InterruptedException {
         if (transactionResponse.hasError()) {
             throw new RuntimeException(
                     "Error processing transaction request: "

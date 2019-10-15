@@ -17,6 +17,7 @@ import java.lang.reflect.Constructor;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -46,6 +47,8 @@ import org.web3j.protocol.exceptions.TransactionException;
 import org.web3j.tx.exceptions.ContractCallException;
 import org.web3j.tx.gas.ContractGasProvider;
 import org.web3j.tx.gas.StaticGasProvider;
+import org.web3j.tx.interactions.EthCallInteraction;
+import org.web3j.tx.interactions.EthTransactionInteraction;
 import org.web3j.utils.Numeric;
 
 /**
@@ -107,6 +110,7 @@ public abstract class Contract extends ManagedTransaction {
             Web3j web3j,
             Credentials credentials,
             ContractGasProvider gasProvider) {
+
         this(
                 new EnsResolver(web3j),
                 contractBinary,
@@ -292,6 +296,58 @@ public abstract class Contract extends ManagedTransaction {
         return FunctionReturnDecoder.decode(value, function.getOutputParameters());
     }
 
+    protected EthCallInteraction<List<Type>> executeInteractiveCallMultipleValueReturn(Function function){
+        return executeInteractiveCallMultipleValueReturn(function,(v)-> v);
+    }
+    protected <T> EthCallInteraction<T> executeInteractiveCallMultipleValueReturn(Function function, java.util.function.Function<List<Type>,T> mapper){
+        return transactionManager.sendInteractiveCall(contractAddress, FunctionEncoder.encode(function),
+                data -> {
+                    List<Type> decode = FunctionReturnDecoder.decode(data, function.getOutputParameters());
+                    return mapper.apply(decode);
+                });
+    }
+
+    @SuppressWarnings("unchecked")
+    protected <T extends Type,Ri,R> EthCallInteraction<R> executeInteractiveCallSingleValueReturn(Function function, Class<Ri> returnType, java.util.function.Function<Ri,R> mapper) {
+        return transactionManager.sendInteractiveCall(contractAddress, FunctionEncoder.encode(function), data -> {
+            List<Type> decode = FunctionReturnDecoder.decode(data, function.getOutputParameters());
+            if(decode.isEmpty()|| decode.get(0)==null) {
+                throw new ContractCallException(
+                        "Unable to convert response: "
+                                + data
+                                + " to expected type: "
+                                + returnType.getSimpleName());
+            }else{
+                return mapper.apply((Ri)decode.get(0).getValue());
+            }
+        });
+    }
+
+    @SuppressWarnings("unchecked")
+    protected <T extends Type, R> EthCallInteraction<R> executeInteractiveCallSingleValueReturn(Function function, Class<R> returnType) {
+        return transactionManager.sendInteractiveCall(contractAddress, FunctionEncoder.encode(function), data -> {
+            List<Type> decode = FunctionReturnDecoder.decode(data, function.getOutputParameters());
+            if (decode.isEmpty()) {
+                return null;
+            } else {
+                return (R) decode.get(0).getValue();
+            }
+        });
+    }
+
+    @SuppressWarnings("unchecked")
+    protected <T extends Type> EthCallInteraction<T> executeInteractiveCallSingleValueReturn(Function function){
+        return transactionManager.sendInteractiveCall(contractAddress, FunctionEncoder.encode(function), data -> {
+            List<Type> decode = FunctionReturnDecoder.decode(data, function.getOutputParameters());
+            if(decode.isEmpty()) {
+               return null;
+            }
+            else {
+                return (T) decode.get(0);
+            }
+        });
+    }
+
     @SuppressWarnings("unchecked")
     protected <T extends Type> T executeCallSingleValueReturn(Function function)
             throws IOException {
@@ -345,6 +401,16 @@ public abstract class Contract extends ManagedTransaction {
         return executeTransaction(data, weiValue, funcName, false);
     }
 
+
+    private EthTransactionInteraction executeInteractiveTransaction(Function function) {
+        return executeInteractiveTransaction(function, BigInteger.ZERO);
+    }
+
+    protected EthTransactionInteraction executeInteractiveTransaction(Function function, BigInteger weiValue) {
+        return executeInteractiveTransaction(FunctionEncoder.encode(function), weiValue, function.getName());
+    }
+
+
     /**
      * Given the duration required to execute a transaction.
      *
@@ -356,7 +422,7 @@ public abstract class Contract extends ManagedTransaction {
      */
     TransactionReceipt executeTransaction(
             String data, BigInteger weiValue, String funcName, boolean constructor)
-            throws TransactionException, IOException {
+            throws TransactionException, IOException, InterruptedException {
 
         TransactionReceipt receipt =
                 send(
@@ -378,35 +444,39 @@ public abstract class Contract extends ManagedTransaction {
         return receipt;
     }
 
-    protected <T extends Type> RemoteFunctionCall<T> executeRemoteCallSingleValueReturn(
-            Function function) {
-        return new RemoteFunctionCall<>(function, () -> executeCallSingleValueReturn(function));
+    EthTransactionInteraction executeInteractiveTransaction(String data, BigInteger weiValue, String funcName){
+        return submitTransaction(contractAddress,data,weiValue, gasProvider.getGasPrice(funcName), gasProvider.getGasLimit(funcName));
     }
 
-    protected <T> RemoteFunctionCall<T> executeRemoteCallSingleValueReturn(
+    protected <T extends Type> EthCallInteraction<T> executeRemoteCallSingleValueReturn(Function function) {
+        return executeInteractiveCallSingleValueReturn(function);
+    }
+
+    protected <T> EthCallInteraction<T> executeRemoteCallSingleValueReturn(
             Function function, Class<T> returnType) {
-        return new RemoteFunctionCall<>(
-                function, () -> executeCallSingleValueReturn(function, returnType));
+        return executeInteractiveCallSingleValueReturn(function, returnType);
+    }
+    protected <T,R> EthCallInteraction<R> executeRemoteCallSingleValueReturn(
+            Function function, Class<T> returnType, java.util.function.Function<T,R> mapper) {
+        return executeInteractiveCallSingleValueReturn(function, returnType,mapper);
     }
 
-    protected RemoteFunctionCall<List<Type>> executeRemoteCallMultipleValueReturn(
-            Function function) {
-        return new RemoteFunctionCall<>(function, () -> executeCallMultipleValueReturn(function));
+    protected EthCallInteraction<List<Type>> executeRemoteCallMultipleValueReturn(Function function) {
+        return executeInteractiveCallMultipleValueReturn(function);
     }
 
-    protected RemoteFunctionCall<TransactionReceipt> executeRemoteCallTransaction(
-            Function function) {
-        return new RemoteFunctionCall<>(function, () -> executeTransaction(function));
+    protected EthTransactionInteraction executeRemoteCallTransaction(Function function) {
+        return executeInteractiveTransaction(function);
     }
 
-    protected RemoteFunctionCall<TransactionReceipt> executeRemoteCallTransaction(
+    protected EthTransactionInteraction executeRemoteCallTransaction(
             Function function, BigInteger weiValue) {
-        return new RemoteFunctionCall<>(function, () -> executeTransaction(function, weiValue));
+        return executeInteractiveTransaction(function, weiValue);
     }
 
     private static <T extends Contract> T create(
             T contract, String binary, String encodedConstructor, BigInteger value)
-            throws IOException, TransactionException {
+            throws IOException, TransactionException, InterruptedException {
         TransactionReceipt transactionReceipt =
                 contract.executeTransaction(binary + encodedConstructor, value, FUNC_DEPLOY, true);
 
@@ -533,8 +603,7 @@ public abstract class Contract extends ManagedTransaction {
             String binary,
             String encodedConstructor,
             BigInteger value) {
-        return new RemoteCall<>(
-                () ->
+        return () ->
                         deploy(
                                 type,
                                 web3j,
@@ -543,7 +612,7 @@ public abstract class Contract extends ManagedTransaction {
                                 gasLimit,
                                 binary,
                                 encodedConstructor,
-                                value));
+                                value);
     }
 
     public static <T extends Contract> RemoteCall<T> deployRemoteCall(
@@ -573,8 +642,7 @@ public abstract class Contract extends ManagedTransaction {
             String binary,
             String encodedConstructor,
             BigInteger value) {
-        return new RemoteCall<>(
-                () ->
+        return () ->
                         deploy(
                                 type,
                                 web3j,
@@ -582,7 +650,7 @@ public abstract class Contract extends ManagedTransaction {
                                 contractGasProvider,
                                 binary,
                                 encodedConstructor,
-                                value));
+                                value);
     }
 
     public static <T extends Contract> RemoteCall<T> deployRemoteCall(
@@ -592,8 +660,7 @@ public abstract class Contract extends ManagedTransaction {
             ContractGasProvider contractGasProvider,
             String binary,
             String encodedConstructor) {
-        return new RemoteCall<>(
-                () ->
+        return () ->
                         deploy(
                                 type,
                                 web3j,
@@ -601,7 +668,7 @@ public abstract class Contract extends ManagedTransaction {
                                 contractGasProvider,
                                 binary,
                                 encodedConstructor,
-                                BigInteger.ZERO));
+                                BigInteger.ZERO);
     }
 
     public static <T extends Contract> RemoteCall<T> deployRemoteCall(
@@ -613,8 +680,7 @@ public abstract class Contract extends ManagedTransaction {
             String binary,
             String encodedConstructor,
             BigInteger value) {
-        return new RemoteCall<>(
-                () ->
+        return () ->
                         deploy(
                                 type,
                                 web3j,
@@ -623,7 +689,7 @@ public abstract class Contract extends ManagedTransaction {
                                 gasLimit,
                                 binary,
                                 encodedConstructor,
-                                value));
+                                value);
     }
 
     public static <T extends Contract> RemoteCall<T> deployRemoteCall(
@@ -653,8 +719,7 @@ public abstract class Contract extends ManagedTransaction {
             String binary,
             String encodedConstructor,
             BigInteger value) {
-        return new RemoteCall<>(
-                () ->
+        return () ->
                         deploy(
                                 type,
                                 web3j,
@@ -662,7 +727,7 @@ public abstract class Contract extends ManagedTransaction {
                                 contractGasProvider,
                                 binary,
                                 encodedConstructor,
-                                value));
+                                value);
     }
 
     public static <T extends Contract> RemoteCall<T> deployRemoteCall(
@@ -672,8 +737,7 @@ public abstract class Contract extends ManagedTransaction {
             ContractGasProvider contractGasProvider,
             String binary,
             String encodedConstructor) {
-        return new RemoteCall<>(
-                () ->
+        return () ->
                         deploy(
                                 type,
                                 web3j,
@@ -681,7 +745,7 @@ public abstract class Contract extends ManagedTransaction {
                                 contractGasProvider,
                                 binary,
                                 encodedConstructor,
-                                BigInteger.ZERO));
+                                BigInteger.ZERO);
     }
 
     public static EventValues staticExtractEventParameters(Event event, Log log) {

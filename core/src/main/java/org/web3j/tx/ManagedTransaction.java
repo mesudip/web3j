@@ -21,6 +21,8 @@ import org.web3j.protocol.core.DefaultBlockParameter;
 import org.web3j.protocol.core.methods.response.EthGasPrice;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.protocol.exceptions.TransactionException;
+import org.web3j.tx.interactions.EthTransactionInteraction;
+import org.web3j.tx.interactions.RawResponseEthCallInteraction;
 
 /** Generic transaction manager. */
 public abstract class ManagedTransaction {
@@ -97,7 +99,7 @@ public abstract class ManagedTransaction {
 
     protected TransactionReceipt send(
             String to, String data, BigInteger value, BigInteger gasPrice, BigInteger gasLimit)
-            throws IOException, TransactionException {
+            throws IOException, TransactionException, InterruptedException {
 
         return transactionManager.executeTransaction(gasPrice, gasLimit, to, data, value);
     }
@@ -109,7 +111,7 @@ public abstract class ManagedTransaction {
             BigInteger gasPrice,
             BigInteger gasLimit,
             boolean constructor)
-            throws IOException, TransactionException {
+            throws IOException, TransactionException, InterruptedException {
 
         return transactionManager.executeTransaction(
                 gasPrice, gasLimit, to, data, value, constructor);
@@ -119,5 +121,13 @@ public abstract class ManagedTransaction {
             throws IOException {
 
         return transactionManager.sendCall(to, data, defaultBlockParameter);
+    }
+
+    /**
+     * Submit a transaction to network.
+     * This method returns RemoteCall that can be sent to immediately get transactionHash
+     */
+    EthTransactionInteraction submitTransaction(String to, String data, BigInteger value, BigInteger gasPrice, BigInteger gasLimit) {
+        return new EthTransactionInteraction(transactionManager, gasPrice, gasLimit, to, data, value);
     }
 }

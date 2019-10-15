@@ -121,14 +121,18 @@ public abstract class PrivateTransactionManager extends TransactionManager {
             final BigInteger gasLimit,
             final String to,
             final String data,
+            BigInteger nonce,
             final BigInteger value,
             boolean constructor)
             throws IOException {
 
-        final BigInteger nonce =
-                besu.privGetTransactionCount(credentials.getAddress(), getPrivacyGroupId())
-                        .send()
-                        .getTransactionCount();
+        if (nonce==null){
+            nonce =
+                    besu.privGetTransactionCount(credentials.getAddress(), getPrivacyGroupId())
+                            .send()
+                            .getTransactionCount();
+        }
+
 
         final Object privacyGroupIdOrPrivateFor = privacyGroupIdOrPrivateFor();
 

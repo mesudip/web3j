@@ -111,14 +111,12 @@ public class RawTransactionManager extends TransactionManager {
             BigInteger gasLimit,
             String to,
             String data,
+            BigInteger nounce,
             BigInteger value,
             boolean constructor)
             throws IOException {
-
-        BigInteger nonce = getNonce();
-
         RawTransaction rawTransaction =
-                RawTransaction.createTransaction(nonce, gasPrice, gasLimit, to, value, data);
+                RawTransaction.createTransaction(nounce==null?getNonce():nounce, gasPrice, gasLimit, to, value, data);
 
         return signAndSend(rawTransaction);
     }

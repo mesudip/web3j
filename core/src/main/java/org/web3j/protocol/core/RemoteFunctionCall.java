@@ -25,12 +25,11 @@ import org.web3j.abi.datatypes.Type;
  *
  * @param <T> Our return type.
  */
-public class RemoteFunctionCall<T> extends RemoteCall<T> {
+public abstract class RemoteFunctionCall<T> implements RemoteCall<T> {
 
     private final Function function;
 
-    public RemoteFunctionCall(Function function, Callable<T> callable) {
-        super(callable);
+    public RemoteFunctionCall(Function function) {
         this.function = function;
     }
 

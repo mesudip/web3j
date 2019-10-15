@@ -19,10 +19,14 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import org.web3j.crypto.Pair;
 import org.web3j.protocol.Web3j;
+import org.web3j.protocol.core.Response;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.protocol.exceptions.TransactionException;
 import org.web3j.utils.Async;
+
+import javax.swing.text.html.Option;
 
 /**
  * Transaction receipt processor that uses a single thread to query for transaction receipts.
@@ -55,10 +59,14 @@ public class QueuingTransactionReceiptProcessor extends TransactionReceiptProces
     }
 
     @Override
-    public TransactionReceipt waitForTransactionReceipt(String transactionHash)
-            throws IOException, TransactionException {
+    public Pair<? extends TransactionReceipt, Optional<Response.Error>> waitForTransactionReceiptResponse(String transactionHash){
         pendingTransactions.add(new RequestWrapper(transactionHash));
+        return new Pair<>(new EmptyTransactionReceipt(transactionHash),Optional.empty());
+    }
 
+    @Override
+    public TransactionReceipt waitForTransactionReceipt(String transactionHash) {
+        pendingTransactions.add(new RequestWrapper(transactionHash));
         return new EmptyTransactionReceipt(transactionHash);
     }
 
@@ -66,11 +74,9 @@ public class QueuingTransactionReceiptProcessor extends TransactionReceiptProces
         for (RequestWrapper requestWrapper : pendingTransactions) {
             try {
                 String transactionHash = requestWrapper.getTransactionHash();
-                Optional<TransactionReceipt> transactionReceipt =
-                        (Optional<TransactionReceipt>)
-                                sendTransactionReceiptRequest(transactionHash);
-                if (transactionReceipt.isPresent()) {
-                    callback.accept(transactionReceipt.get());
+                Pair<? extends Optional<? extends TransactionReceipt>, Optional<Response.Error>> transactionReceipt = sendTransactionReceiptAcceptError(transactionHash);
+                if (transactionReceipt.getFirst().isPresent()) {
+                    callback.success(transactionReceipt.getFirst().get(),transactionReceipt.getSecond());
                     pendingTransactions.remove(requestWrapper);
                 } else {
                     if (requestWrapper.getCount() == pollingAttemptsPerTxHash) {
